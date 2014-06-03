@@ -1,8 +1,7 @@
-import ddf.minim.analysis.*;
+ import ddf.minim.analysis.*;
 import ddf.minim.*;
 import processing.serial.*;
 Minim minim;
-AudioPlayer jingle;
 FFT fft;
 AudioInput in;
 float[] angle;
@@ -10,24 +9,27 @@ float[] y, x;
 int frameheight = 8; // set to height of frame (y)
 int framewidth = 34; // set to width of frame (x)
 Serial port;
- 
+
 void setup() {
   size(framewidth,frameheight,P3D);
   minim = new Minim(this);
   in = minim.getLineIn(Minim.STEREO, 2048, 192000.0);
   fft = new FFT(in.bufferSize(), in.sampleRate());
+  
   y = new float[fft.specSize()];
   x = new float[fft.specSize()];
   angle = new float[fft.specSize()];
-  frameRate(500);
-  port = new Serial(this,"/dev/cu.usbmodem33861", 115200);
+  
+  frameRate(30);
+  port = new Serial(this,"/dev/cu.usbmodem35131", 115200);
   
 }
  
 void draw() {
   background(0);
   fft.forward(in.mix);
-  doubleAtomicSprocket();
+  //doubleAtomicSprocket();
+  spectrumanal();
    
   for (int i=0;i<framewidth;i++) {
     for (int j=0;j<frameheight;j++) {
@@ -108,11 +110,29 @@ void doubleAtomicSprocket() {  // This section written by Benjamin Farahmand htt
   }
   popMatrix();
 }
+
+void spectrumanal()
+{
+  int band = fft.specSize()/34;
+  for(int i = 0; i < 34; i++)
+  {
+    if (fft.getBand(band * i) <= 3){
+      stroke(0,0,255);
+    }
+    else if (fft.getBand(band * i) <=6 && fft.getBand(band * i) > 3){
+      stroke(255,0,255);
+    }
+    else if (fft.getBand(band * i) > 6){
+      stroke(255,0,0);
+    } 
+    line( i + 1, height, i + 1, height - fft.getBand(band * i));
+  }
+}
+ //<>//
+
 void stop(){
   // always close Minim audio classes when you finish with them
-  jingle.close();
   minim.stop();
  
   super.stop();
 }
-
